@@ -260,13 +260,15 @@ function TccAccessory(that, device) {
         callback(null);
       }.bind(this));
 
+    // Current Fan State is not wired in the HomeApp, but is in the Eve app
+
     this.accessory
       .getService(Service.Fanv2)
       .addCharacteristic(Characteristic.CurrentFanState);
 
-      this.accessory
-        .getService(Service.Fanv2)
-        .getCharacteristic(Characteristic.CurrentFanState).updateValue(1);
+    this.accessory
+      .getService(Service.Fanv2)
+      .getCharacteristic(Characteristic.CurrentFanState).updateValue(1);
 
     this.accessory.context.ChangeThermostat = new ChangeThermostat(this.accessory);
     that.api.registerPlatformAccessories("homebridge-tcc", "tcc", [this.accessory]);
