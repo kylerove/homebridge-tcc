@@ -162,7 +162,7 @@ function updateStatus(accessory, device) {
 
 function TccAccessory(that, device) {
   this.log = that.log;
-  // this.log("Adding TCC Device", device.DeviceName);
+  this.log("Adding TCC Device", JSON.stringify(device, null, 2));
   this.name = device.Name;
   this.ThermostatID = device.ThermostatID;
   this.device = device;
@@ -247,6 +247,26 @@ function TccAccessory(that, device) {
       .getService(Service.Thermostat).addCharacteristic(CustomCharacteristic.ValvePosition);
     // this.accessory.getService(Service.Thermostat).addCharacteristic(CustomCharacteristic.ProgramCommand);
     // this.accessory.getService(Service.Thermostat).addCharacteristic(CustomCharacteristic.ProgramData);
+
+    // Fan Controls
+
+    this.accessory.addService(Service.Fanv2, this.name);
+
+    this.accessory
+      .getService(Service.Fanv2)
+      .getCharacteristic(Characteristic.TargetFanState)
+      .on('set', function(value, callback) {
+        this.log.debug('Triggered SET Active:', value);
+        callback(null);
+      }.bind(this));
+
+    this.accessory
+      .getService(Service.Fanv2)
+      .addCharacteristic(Characteristic.CurrentFanState);
+
+      this.accessory
+        .getService(Service.Fanv2)
+        .getCharacteristic(Characteristic.CurrentFanState).updateValue(1);
 
     this.accessory.context.ChangeThermostat = new ChangeThermostat(this.accessory);
     that.api.registerPlatformAccessories("homebridge-tcc", "tcc", [this.accessory]);
