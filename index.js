@@ -96,6 +96,35 @@ tccPlatform.prototype.configureAccessory = function(accessory) {
     });
   }
 
+  if (accessory.getService(Service.Fanv2)) {
+    // this.accessory.addService(Service.Fanv2, this.name);
+
+    if (accessory
+      .getService(Service.Fanv2)
+      .getCharacteristic(Characteristic.TargetFanState)) {
+      accessory
+        .getService(Service.Fanv2)
+        .getCharacteristic(Characteristic.TargetFanState)
+        .on('set', function(value, callback) {
+          this.log.debug('Triggered SET TargetFanState:', value);
+          setFan.call(this, (value ? "Auto" : "On"), callback);
+        }.bind(accessory));
+    }
+
+    if (accessory
+      .getService(Service.Fanv2)
+      .getCharacteristic(Characteristic.Active)) {
+      accessory
+        .getService(Service.Fanv2)
+        .getCharacteristic(Characteristic.Active)
+        .on('set', function(value, callback) {
+          this.log.debug('Triggered SET Active:', value);
+          setFan.call(this, (value ? "On" : "Auto"), callback);
+          // callback(null);
+        }.bind(accessory));
+    }
+  }
+
   accessory.context.ChangeThermostat = new ChangeThermostat(accessory);
   // debug("CA", accessory.context.ChangeThermostat);
   myAccessories.push(accessory);
@@ -147,6 +176,47 @@ function updateStatus(accessory, device) {
     .updateValue(device.CoolingThresholdTemperature);
   service.getCharacteristic(Characteristic.HeatingThresholdTemperature)
     .updateValue(device.HeatingThresholdTemperature);
+
+  if (accessory.getService(Service.Fanv2)) {
+    service = accessory.getService(Service.Fanv2);
+    /*
+    <s:restriction base="s:string">
+      <s:enumeration value="Auto" />
+      <s:enumeration value="On" />
+      <s:enumeration value="Circulate" />
+      <s:enumeration value="FollowSchedule" />
+      <s:enumeration value="Unknown" />
+    </s:restriction>
+    */
+
+    switch (device.CurrentFanState) {
+      case "Auto":
+        service.getCharacteristic(Characteristic.Active)
+          .updateValue(0);
+        service.getCharacteristic(Characteristic.TargetFanState)
+          .updateValue(1);
+        break;
+      case "On":
+        service.getCharacteristic(Characteristic.Active)
+          .updateValue(1);
+        service.getCharacteristic(Characteristic.TargetFanState)
+          .updateValue(0);
+        break;
+      case "Circulate":
+        service.getCharacteristic(Characteristic.Active)
+          .updateValue(0);
+        service.getCharacteristic(Characteristic.TargetFanState)
+          .updateValue(0);
+        break;
+      case "FollowSchedule":
+        service.getCharacteristic(Characteristic.Active)
+          .updateValue(0);
+        service.getCharacteristic(Characteristic.TargetFanState)
+          .updateValue(0);
+        break;
+      default:
+    }
+  }
   // Fakegato Support
   accessory.context.logEventCounter++;
   if (!(accessory.context.logEventCounter % 10)) {
@@ -252,23 +322,36 @@ function TccAccessory(that, device) {
 
     this.accessory.addService(Service.Fanv2, this.name);
 
+    if (device.TargetFanValues.CanSetAuto) {
+      this.accessory
+        .getService(Service.Fanv2)
+        .getCharacteristic(Characteristic.TargetFanState)
+        .on('set', function(value, callback) {
+          this.log.debug('Triggered SET TargetFanState:', value);
+          setFan((value ? "Auto" : "On"), callback);
+        }.bind(this));
+    }
+
+    if (device.TargetFanValues.CanSetOn) {
+      this.accessory
+        .getService(Service.Fanv2)
+        .getCharacteristic(Characteristic.Active)
+        .on('set', function(value, callback) {
+          this.log.debug('Triggered SET Active:', value);
+          setFan((value ? "On" : "Auto"), callback);
+          // callback(null);
+        }.bind(this));
+    }
+
+    /*
     this.accessory
       .getService(Service.Fanv2)
-      .getCharacteristic(Characteristic.TargetFanState)
+      .getCharacteristic(Characteristic.SwingMode)
       .on('set', function(value, callback) {
-        this.log.debug('Triggered SET Active:', value);
+        this.log.debug('Triggered SET SwingMode:', value);
         callback(null);
       }.bind(this));
-
-    // Current Fan State is not wired in the HomeApp, but is in the Eve app
-
-    this.accessory
-      .getService(Service.Fanv2)
-      .addCharacteristic(Characteristic.CurrentFanState);
-
-    this.accessory
-      .getService(Service.Fanv2)
-      .getCharacteristic(Characteristic.CurrentFanState).updateValue(1);
+    */
 
     this.accessory.context.ChangeThermostat = new ChangeThermostat(this.accessory);
     that.api.registerPlatformAccessories("homebridge-tcc", "tcc", [this.accessory]);
@@ -328,6 +411,20 @@ function setCoolingThresholdTemperature(value, callback) {
     CoolingThresholdTemperature: value
   }).then((thermostat) => {
     // debug("setTargetHeatingCooling", this, thermostat);
+    updateStatus(this, thermostat);
+    callback(null, value);
+  }).catch((error) => {
+    callback(error);
+  });
+}
+
+function setFan(value, callback) {
+  this.log("Setting Fan for", this.displayName, "to", value);
+  thermostats.ChangeThermostatFan({
+    ThermostatID: this.context.ThermostatID,
+    fanSwitch: value
+  }).then((thermostat) => {
+    debug("setFan - Complete", thermostat);
     updateStatus(this, thermostat);
     callback(null, value);
   }).catch((error) => {
