@@ -424,7 +424,7 @@ function setFan(value, callback) {
     ThermostatID: this.context.ThermostatID,
     fanSwitch: value
   }).then((thermostat) => {
-    debug("setFan - Complete", thermostat);
+    // debug("setFan - Complete", thermostat);
     updateStatus(this, thermostat);
     callback(null, value);
   }).catch((error) => {
