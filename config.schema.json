@@ -56,6 +56,37 @@
         "required": false,
         "description": "If set to true, temperature changes will be set as permanent holds, rather than temporary holds. This will allow you to use HomeKit automations to completely replace your thermostat's schedule. If set to false, the temperature changes will expire after a certain period of time and resume your normal schedule. By default, this is off."
       },
+      "humidifier": {
+        "title": "Humidifier",
+        "type": "boolean",
+        "required": false,
+        "default": false,
+        "description": "Enable a separate humidifier HomeKit accessory (only if supported by your home setup and exposed through Honeywell)"
+      }
+      "sensors": {
+        "title": "Sensors",
+        "type": "string",
+        "required": false,
+        "description": "Enable temperature and humidity sensors inside and/or outside.",
+        "default": "none",
+        "oneOf": [{
+            "title": "No sensors",
+            "enum": ["none"]
+          },
+          {
+            "title": "Inside sensors only",
+            "enum": ["inside"]
+          },
+          {
+            "title": "Outside sensors only",
+            "enum": ["inside"]
+          },
+          {
+            "title": "All inside and outside sensors",
+            "enum": ["all"]
+          }
+        ]
+      },
       "debug": {
         "title": "Debug Logging",
         "type": "boolean",

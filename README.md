@@ -56,6 +56,7 @@ To resolve the issue, please follow the steps here. https://github.com/nodejs/no
 * `refresh` - Data polling interval in seconds, defaults to 10 minutes.  Setting lower than 10 minutes may trigger request rate limiter on Honeywell backend.
 * `storage` - Storage of chart graphing data for history graphing, either fs or googleDrive, defaults to fs
 * `usePermanentHolds` - If set to `true`, temperature changes will be set as permanent holds, rather than temporary holds. This will allow you to use HomeKit automations to completely replace your thermostat's schedule. If set to `false`, the temperature changes will expire after a certain period of time and resume your normal schedule. By default, this is off.
+* `humidifier` - Enables separate humidifier HomeKit accessory, defaults to `false`, to enable set to `true`
 * `sensors` - Enables temperature/humidity HomeKit sensors (useful for automations), options include:
   * `none` - No sensors will be shown (this is default setting)
   * `all` - Enables all available temperature/humidity sensors
@@ -75,4 +76,4 @@ To resolve the issue, please follow the steps here. https://github.com/nodejs/no
 - simont77 - FakeGato History
 - hakusaro - Added support for permanent temperature holds.
 - jcgorla-dev - Validation of Honeywell's Prestige IAQ Thermostat
-- kylerove - Added support for separate indoor and outdoor temperature / humidity sensors
+- kylerove - Added support for separate indoor and outdoor temperature / humidity sensors, humidifier accessory
